@@ -51,7 +51,7 @@ func TestSvn_Commit(t *testing.T) {
 		storage.EXPECT().GetCollectionInfo("repo").Return(nil)
 		storage.EXPECT().AddOrUpdateFiles("repo", map[string]string{
 			"readme.txt": "hello go",
-			"test.txt":   "Hello Universe\n",
+			"test.txt":   "Hello world",
 		}).Return(2, 0, nil)
 		svn, err := NewSnv(storage, "./testdata/repo")
 		assert.NoError(t, err)
