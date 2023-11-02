@@ -15,7 +15,6 @@ var commitCmd = &cobra.Command{
 	Use:   "commit",
 	Short: "Adds or updates files in the repository",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("Repository name %v\n", getRepoName())
 		res, err := createSvn().Commit()
 		if err != nil {
 			fmt.Printf("Error committing files %v\n", err)

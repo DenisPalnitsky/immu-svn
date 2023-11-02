@@ -1,6 +1,7 @@
 package pkg
 
 import (
+	"errors"
 	"fmt"
 	"io/fs"
 	"os"
@@ -8,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/DenisPalnitsky/immu-svn/pkg/data"
-	"github.com/DenisPalnitsky/immu-svn/pkg/immudb"
 )
 
 type Storage interface {
@@ -25,26 +25,37 @@ type CommitInfo struct {
 
 type Svn struct {
 	storage    Storage
-	repoName   string
+	RepoName   string
 	workingDir string
 }
 
-func NewSnv(storage Storage, repoName string, workingDir string) *Svn {
+func NewSnv(storage Storage, workingDir string) (*Svn, error) {
+	repoName, err := getRepoName(workingDir)
+	if err != nil {
+		return nil, err
+	}
 	return &Svn{
 		storage:    storage,
-		repoName:   repoName,
+		RepoName:   repoName,
 		workingDir: workingDir,
-	}
+	}, nil
 }
 
 func (s *Svn) Init() error {
-	return s.storage.CreateRepo(s.repoName)
+	err := s.storage.CreateRepo(s.RepoName)
+	if err != nil {
+		if err == data.CollectionAlreadyExist {
+			return errors.New("repository already initialized")
+		}
+		return err
+	}
+	return nil
 }
 
 func (s *Svn) Commit() (*CommitInfo, error) {
-	if err := s.storage.GetCollectionInfo(s.repoName); err != nil {
-		if err == immudb.RepositoryNotFound {
-			return nil, fmt.Errorf("repository %s not found", s.repoName)
+	if err := s.storage.GetCollectionInfo(s.RepoName); err != nil {
+		if err == data.RepositoryNotFound {
+			return nil, fmt.Errorf("repository %s not found", s.RepoName)
 		} else {
 			return nil, fmt.Errorf("error getting collection info %w", err)
 		}
@@ -55,7 +66,7 @@ func (s *Svn) Commit() (*CommitInfo, error) {
 		return nil, fmt.Errorf("error listing files %w", err)
 	}
 
-	added, updated, err := s.storage.AddOrUpdateFiles(s.repoName, files)
+	added, updated, err := s.storage.AddOrUpdateFiles(s.RepoName, files)
 	if err != nil {
 		return nil, fmt.Errorf("error adding or updating files %w", err)
 	}
@@ -64,6 +75,18 @@ func (s *Svn) Commit() (*CommitInfo, error) {
 		FilesAdded:   added,
 		FilesUpdated: updated,
 	}, nil
+}
+
+func (s *Svn) Diff(filePath string) ([]data.DiffLogItem, error) {
+	return s.storage.Diff(s.RepoName, filePath)
+}
+
+func getRepoName(dir string) (string, error) {
+	repoName := dir[strings.LastIndex(dir, "/")+1:]
+	if len(repoName) == 0 {
+		return "", errors.New("invalid repository name")
+	}
+	return repoName, nil
 }
 
 func listFiles(directoryPath string) (map[string]string, error) {
@@ -85,7 +108,7 @@ func listFiles(directoryPath string) (map[string]string, error) {
 				return err
 			}
 
-			if len(content) > 512 {
+			if len(content) >= 512 {
 				return fmt.Errorf("file %s is too big. We support only files up to 512 bytes", path)
 			}
 
@@ -103,8 +126,4 @@ func listFiles(directoryPath string) (map[string]string, error) {
 	}
 
 	return files, nil
-}
-
-func (s *Svn) Diff(filePath string) ([]data.DiffLogItem, error) {
-	return s.storage.Diff(s.repoName, filePath)
 }

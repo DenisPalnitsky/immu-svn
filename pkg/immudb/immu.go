@@ -17,8 +17,6 @@ type ImmudbClient struct {
 	restClient *resty.Client
 }
 
-var RepositoryNotFound = fmt.Errorf("collection not found")
-
 func NewImmudbClient(apiKey string) *ImmudbClient {
 	var client = resty.New().SetDoNotParseResponse(true)
 	client.SetHeaders(map[string]string{
@@ -267,7 +265,7 @@ func (c *ImmudbClient) GetCollectionInfo(collectionName string) error {
 		return fmt.Errorf("error getting collection info %w", err)
 	}
 	if resp.StatusCode() == http.StatusNotFound {
-		return RepositoryNotFound
+		return data.RepositoryNotFound
 	}
 	if resp.StatusCode() != http.StatusOK {
 		slog.Error("error getting collection info", "body", string(resp.Body()), "status", resp.StatusCode())

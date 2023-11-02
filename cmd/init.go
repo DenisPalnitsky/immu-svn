@@ -15,10 +15,12 @@ var initCmd = &cobra.Command{
 	Short: "Initialize remote repository",
 	Run: func(cmd *cobra.Command, args []string) {
 
-		fmt.Printf("Repository name %v\n", getRepoName())
-		createSvn().Init()
-
-		fmt.Printf("Repository %s initialized\n", getRepoName())
+		svn := createSvn()
+		err := svn.Init()
+		if err != nil {
+			fmt.Printf("Error initializing repository %v\n", err)
+		}
+		fmt.Printf("Repository %s initialized\n", svn.RepoName)
 	},
 }
 

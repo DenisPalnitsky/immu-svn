@@ -6,7 +6,6 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/DenisPalnitsky/immu-svn/pkg"
 	"github.com/DenisPalnitsky/immu-svn/pkg/immudb"
@@ -49,15 +48,11 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&workingDir, "dir", "d", path, "working directory (default is current directory)")
 }
 
-func getRepoName() string {
-	repoName := workingDir[strings.LastIndex(workingDir, "/")+1:]
-	if len(repoName) == 0 {
-		fmt.Println("error: invalid repository name")
+func createSvn() *pkg.Svn {
+	svn, err := pkg.NewSnv(immudb.NewImmudbClient(os.Getenv("IMMUDB_API_KEY")), workingDir)
+	if err != nil {
+		fmt.Printf("Error creating svn %v\n", err)
 		os.Exit(1)
 	}
-	return repoName
-}
-
-func createSvn() *pkg.Svn {
-	return pkg.NewSnv(immudb.NewImmudbClient(os.Getenv("IMMUDB_API_KEY")), getRepoName(), workingDir)
+	return svn
 }
