@@ -1,0 +1,63 @@
+/*
+Copyright © 2023 NAME HERE <EMAIL ADDRESS>
+*/
+package cmd
+
+import (
+	"fmt"
+	"os"
+	"strings"
+
+	"github.com/DenisPalnitsky/immu-svn/pkg"
+	"github.com/DenisPalnitsky/immu-svn/pkg/immudb"
+	"github.com/spf13/cobra"
+)
+
+var workingDir string
+
+// rootCmd represents the base command when called without any subcommands
+var rootCmd = &cobra.Command{
+	Use:   "immu-svn",
+	Short: "A brief description of your application",
+	Long: `A longer description that spans multiple lines and likely contains
+examples and usage of using your application. For example:
+
+Cobra is a CLI library for Go that empowers applications.
+This application is a tool to generate the needed files
+to quickly create a Cobra application.`,
+	// Uncomment the following line if your bare application
+	// has an action associated with it:
+	// Run: func(cmd *cobra.Command, args []string) { },
+}
+
+// Execute adds all child commands to the root command and sets flags appropriately.
+// This is called by main.main(). It only needs to happen once to the rootCmd.
+func Execute() {
+	err := rootCmd.Execute()
+	if err != nil {
+		os.Exit(1)
+	}
+}
+
+func init() {
+	path, err := os.Getwd()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	rootCmd.PersistentFlags().StringVarP(&workingDir, "dir", "d", path, "working directory (default is current directory)")
+}
+
+func getRepoName() string {
+	repoName := workingDir[strings.LastIndex(workingDir, "/")+1:]
+	if len(repoName) == 0 {
+		fmt.Println("error: invalid repository name")
+		os.Exit(1)
+	}
+	return repoName
+}
+
+func createSvn() *pkg.Svn {
+	return pkg.NewSnv(immudb.NewImmudbClient(os.Getenv("IMMUDB_API_KEY")), getRepoName(), workingDir)
+}
