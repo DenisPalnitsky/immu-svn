@@ -80,6 +80,13 @@ func (c *ImmudbClient) AddOrUpdateFiles(collectionName string, files map[string]
 	// update those that exist removing files from the list
 	for _, doc := range existingDocs {
 		if cont, ok := files[doc.Path]; ok {
+
+			// no updates here
+			if cont == doc.Content {
+				delete(files, doc.Path)
+				continue
+			}
+
 			err = c.updateDocument(collectionName, doc.Path, cont)
 			if err != nil {
 				slog.Error("error updating document", "path", doc.Path, "error", err)

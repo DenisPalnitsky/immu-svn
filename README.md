@@ -19,7 +19,7 @@ git clone https://github.com/DenisPalnitsky/immu-svn.git
 cd immu-svn
 go run main.go init -d pkg/testdata/repo
 go run main.go commit -d pkg/testdata/repo
-echo "Hello Universe">pkg/testdata/repo/test.tx
+echo "Hello Universe">pkg/testdata/repo/test.txt
 go run main.go commit -d pkg/testdata/repo
 go run main.go diff -d pkg/testdata/repo -f test.txt
 ```
