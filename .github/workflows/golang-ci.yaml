@@ -37,16 +37,17 @@ jobs:
     - name: Run Tests with Coverage
       run: go test -v ./... -coverprofile=coverage.txt -covermode count 2>&1 ./... | go-junit-report -set-exit-code > report.xml
     
-    - name: Publish Test Results
+    - name: Publish Test Results # publish test result report as a comment to PR
       uses: EnricoMi/publish-unit-test-result-action@v1
-      if: always() # This ensures that test results are published even if the test step fails
+      if: always() 
       with:
         files: ./report.xml
 
-    - name: Convert coverage report 
+    - name: Convert coverage report  # convert golang coverage report to cobertura
       run: go install github.com/axw/gocov/gocov@latest && go install github.com/AlekSi/gocov-xml@latest && gocov convert coverage.txt | gocov-xml > coverage.xml      
 
-    - name: Generate Coverage Summary Report 
+
+    - name: Generate Coverage Summary Report  # convert Cobertura coverage to markdown report
       uses: irongut/CodeCoverageSummary@v1.3.0
       with:
         filename:  coverage.xml
@@ -59,11 +60,17 @@ jobs:
         output: both
         thresholds: '60 80'
 
-    - name: Add Coverage PR Comment
+
+    - uses: jwalton/gh-find-current-pr@v1 # required to add a comment to PR with coverage
+      id: finder
+
+    - name: Add Coverage PR Comment # add comment with coverage report 
       uses: marocchino/sticky-pull-request-comment@v2      
       with:
+        number: ${{ steps.finder.outputs.pr }}
         recreate: true
         path: code-coverage-results.md
+        
         
     - name: Lint
       uses: golangci/golangci-lint-action@v3.1.0   
