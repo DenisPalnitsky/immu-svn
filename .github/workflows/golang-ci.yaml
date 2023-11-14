@@ -36,7 +36,7 @@ jobs:
       uses: EnricoMi/publish-unit-test-result-action@v1
       if: always() # This ensures that test results are published even if the test step fails
       with:
-        files: ./report.json
+        files: ./report.xml
 
     - name: Publish Coverage Comment
       uses: romeovs/lcov-reporter-action@v0.2.20
