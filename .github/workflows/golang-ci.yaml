@@ -32,7 +32,7 @@ jobs:
 
     # convert test results to junit for reporting
     - name: Install Test Reports Dependencies
-      run: go install github.com/jstemmer/go-junit-report/v2@latest && go get github.com/boumenot/gocover-cobertura
+      run: go install github.com/jstemmer/go-junit-report/v2@latest && go install github.com/axw/gocov/gocov@latest && go install github.com/AlekSi/gocov-xml@latest
 
     - name: Run Tests with Coverage
       run: go test -v ./... -coverprofile=coverage.txt -covermode count 2>&1 ./... | go-junit-report -set-exit-code > report.xml
@@ -44,7 +44,7 @@ jobs:
         files: ./report.xml
 
     - name: Convert coverage report 
-      run: gocover-cobertura  coverage.txt > coverage.xml
+      run: go install github.com/axw/gocov/gocov@latest && go install github.com/AlekSi/gocov-xml@latest && gocov convert coverage.txt | gocov-xml > coverage.xml      
 
     - name: Generate Coverage Summary Report 
       uses: irongut/CodeCoverageSummary@v1.3.0
