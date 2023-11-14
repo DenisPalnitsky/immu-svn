@@ -30,7 +30,7 @@ jobs:
       run: go install github.com/jstemmer/go-junit-report/v2@latest
 
     - name: Run Tests with Coverage
-      run: go test -v ./... -coverprofile=coverage.txt -covermode=atomic -json > report.json
+      run: go test -v ./... -coverprofile=coverage.txt -covermode=atomic 2>&1 ./... | go-junit-report -set-exit-code > report.xml
     
     - name: Publish Test Results
       uses: EnricoMi/publish-unit-test-result-action@v1
@@ -40,6 +40,7 @@ jobs:
 
     - name: Publish Coverage Comment
       uses: romeovs/lcov-reporter-action@v0.2.20
+      if: always()
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         lcov_file: ./coverage.txt
