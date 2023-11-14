@@ -1,10 +1,10 @@
+
 name: test-and-lint
-on:
-  push:
+on: [push, workflow_call]
 
 jobs:
-  test:
-    name: test
+  ci:
+    name: ci
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -13,22 +13,37 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: 1.21
+
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/go/pkg/mod # This will cache the Go modules
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+
+    - name: Build
+      run:  go build -v ./...
 
     - name: Test
       run:  go test -v ./... -coverprofile="coverage.out"
-
-  lint:
-    name: lint
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Set up Go
-      uses: actions/setup-go@v2
-      with:
-        go-version: 1.21
-
-    - name: golangci-lint
+    
+    - name: Lint
       uses: golangci/golangci-lint-action@v3.1.0
       with:
         working-directory: ${{ inputs.working-directory }}
+
+    - name: Security and vulnerability analysis (CodeQL)
+      uses: github/codeql-action/analyze@v2
+
+    - name: Cache the CodeQL database
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/codeql
+        key: codeql-db-${{ github.ref }}-${{ github.sha }}
+        restore-keys: |
+          codeql-db-${{ github.ref }}-
+          codeql-db-
+
+
+    
