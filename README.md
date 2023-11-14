@@ -25,8 +25,8 @@ go run main.go diff -d pkg/testdata/repo -f test.txt
 ```
 
 # Limitations
-- Currently only files with less then 512 caracteres are supported
-- Not more then 100 files in repository
+- Currently only files with less then 512 characters are supported
+- Not more than 100 files in the repository
 
 
 
