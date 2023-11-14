@@ -1,6 +1,6 @@
 # ImmuDb based source management system
 
-Immu-svn is a source code management system that stores code in ImmuDb which makes you code history immutable in compliant with every possible regulation.
+Immu-svn is a source code management system that stores code in ImmuDb which makes you code history immutable in compliance with every possible regulation.
 
 # How it works
 immu-svn is a cli application
@@ -25,9 +25,8 @@ go run main.go diff -d pkg/testdata/repo -f test.txt
 ```
 
 # Limitations
-- Currently only files with less then 512 caracteres are supported
-- Not more then 100 files in repository
-
+- Currently, only files with less than 512 characters are supported
+- Not more than 100 files in the repository
 
 
 
