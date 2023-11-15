@@ -93,11 +93,13 @@ jobs:
 
     - name: Lint 
       uses: golangci/golangci-lint-action@v3.1.0
-      with:
-        args: --enable gosec  # include go security checker https://github.com/securego/gosec
+
+    - name: Go security check    
+      uses: securego/gosec@v2.18.2      
 
     - id: govulncheck # vulnerability check from go team https://pkg.go.dev/golang.org/x/vuln/cmd/govulncheck
       uses: golang/govulncheck-action@v1
+      if: always() 
       with:
           go-version-input: ${{ env.GO_VERSION }}
           go-package: ./...
