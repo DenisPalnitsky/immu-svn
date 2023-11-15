@@ -1,13 +1,13 @@
 
 name: test-and-lint
-on: [push, workflow_call]
+on: [push, workflow_dispatch]
 
 env:
   GO_VERSION: 1.21
 
 jobs:
   test:
-    name: ci
+    name: Build and Test
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -76,7 +76,7 @@ jobs:
                 
 
   lint-and-security:
-    name: Lint and security checks
+    name: Static analysis and security checks
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -93,9 +93,8 @@ jobs:
 
     - name: Lint 
       uses: golangci/golangci-lint-action@v3.1.0
-
      
-    - name: Gosec Security Check
+    - name: Gosec Security Check # use gosec to check for security issues
       run:  go install github.com/securego/gosec/v2/cmd/gosec@latest && gosec ./...
 
     - name: Vulnerability check # vulnerability check from go team https://pkg.go.dev/golang.org/x/vuln/cmd/govulncheck
