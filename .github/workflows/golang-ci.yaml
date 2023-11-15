@@ -70,10 +70,15 @@ jobs:
         number: ${{ steps.finder.outputs.pr }}
         recreate: true
         path: code-coverage-results.md
-        
-        
+                
     - name: Lint
       uses: golangci/golangci-lint-action@v3.1.0   
+
+    - name: Gosec Security Scanner
+      uses: securego/gosec@master
+      with:
+        args: ./...
+
 
 
 
