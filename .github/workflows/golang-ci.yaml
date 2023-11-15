@@ -1,10 +1,13 @@
 
 name: test-and-lint
-on: [push, workflow_call]
+on: [push, workflow_dispatch]
+
+env:
+  GO_VERSION: 1.21
 
 jobs:
-  ci:
-    name: ci
+  test:
+    name: Build and Test
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -17,7 +20,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v2
       with:
-        go-version: 1.21
+        go-version: ${{ env.GO_VERSION }}
 
     - name: Cache dependencies
       uses: actions/cache@v3
@@ -37,16 +40,17 @@ jobs:
     - name: Run Tests with Coverage
       run: go test -v ./... -coverprofile=coverage.txt -covermode count 2>&1 ./... | go-junit-report -set-exit-code > report.xml
     
-    - name: Publish Test Results
+    - name: Publish Test Results # publish test result report as a comment to PR
       uses: EnricoMi/publish-unit-test-result-action@v1
-      if: always() # This ensures that test results are published even if the test step fails
+      if: always() 
       with:
         files: ./report.xml
 
-    - name: Convert coverage report 
+    - name: Convert coverage report  # convert golang coverage report to cobertura
       run: go install github.com/axw/gocov/gocov@latest && go install github.com/AlekSi/gocov-xml@latest && gocov convert coverage.txt | gocov-xml > coverage.xml      
 
-    - name: Generate Coverage Summary Report 
+
+    - name: Generate Coverage Summary Report  # convert Cobertura coverage to markdown report
       uses: irongut/CodeCoverageSummary@v1.3.0
       with:
         filename:  coverage.xml
@@ -59,14 +63,49 @@ jobs:
         output: both
         thresholds: '60 80'
 
-    - name: Add Coverage PR Comment
+
+    - uses: jwalton/gh-find-current-pr@v1 # required to add a comment to PR with coverage
+      id: finder
+
+    - name: Add Coverage PR Comment # add comment with coverage report 
       uses: marocchino/sticky-pull-request-comment@v2      
       with:
+        number: ${{ steps.finder.outputs.pr }}
         recreate: true
         path: code-coverage-results.md
-        
-    - name: Lint
-      uses: golangci/golangci-lint-action@v3.1.0   
+                
+
+  lint-and-security:
+    name: Static analysis and security checks
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: read
+      checks: write
+      pull-requests: write
+    steps:
+    
+    - uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ env.GO_VERSION }}
+
+    - name: Lint 
+      uses: golangci/golangci-lint-action@v3.1.0
+     
+    - name: Gosec Security Check # use gosec to check for security issues
+      run:  go install github.com/securego/gosec/v2/cmd/gosec@latest && gosec ./...
+
+    - name: Vulnerability check # vulnerability check from go team https://pkg.go.dev/golang.org/x/vuln/cmd/govulncheck
+      uses: golang/govulncheck-action@v1
+      if: always() 
+      with:
+          go-version-input: ${{ env.GO_VERSION }}
+          go-package: './...'
+    
+
 
 
 
